@@ -296,8 +296,22 @@
                         </div>
                     </div>
                 </div>
-                <!-- LISTAGEM -->
-                <div id="monthly-list" class="space-y-4"></div>
+
+                <!-- LISTAGEM COM ORDENAÇÃO -->
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center px-4">
+                        <h4 class="text-[10px] font-black uppercase text-zinc-500 tracking-[0.2em]">Fluxo de Caixa Mensal</h4>
+                        <div class="flex items-center gap-3">
+                            <span class="text-[9px] font-bold text-zinc-600 uppercase">Ordenar por Valor:</span>
+                            <select id="sort-order" onchange="renderMonthly()" class="!py-1 !px-3 !text-[10px] !rounded-lg !w-auto">
+                                <option value="newest">Mais Recentes</option>
+                                <option value="desc">Maior Valor</option>
+                                <option value="asc">Menor Valor</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="monthly-list" class="space-y-4"></div>
+                </div>
             </section>
 
             <!-- ABA ANUAL -->
@@ -514,9 +528,21 @@
 
         function renderMonthly() {
             const list = document.getElementById('monthly-list');
+            const sortOrder = document.getElementById('sort-order').value;
             list.innerHTML = '';
-            const filtered = transactions.filter(t => t.month === selectedMonth && t.year === selectedYear);
             
+            let filtered = transactions.filter(t => t.month === selectedMonth && t.year === selectedYear);
+            
+            // Lógica de Ordenação
+            if (sortOrder === 'desc') {
+                filtered.sort((a, b) => b.val - a.val);
+            } else if (sortOrder === 'asc') {
+                filtered.sort((a, b) => a.val - b.val);
+            } else {
+                // 'newest' - Por ID/Timestamp decrescente
+                filtered.sort((a, b) => b.id - a.id);
+            }
+
             let income = 0, equity = 0, totalToPay = 0, paid = 0, pending = 0;
             
             filtered.forEach(t => {
