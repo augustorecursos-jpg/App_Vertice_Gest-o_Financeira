@@ -97,7 +97,7 @@
         .yearly-table {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 0 10px;
+            border-spacing: 0 8px;
         }
         .yearly-table th {
             padding: 12px;
@@ -108,17 +108,40 @@
             letter-spacing: 0.1em;
         }
         .yearly-table td {
-            padding: 18px 12px;
+            padding: 14px 12px;
             background: rgba(255, 255, 255, 0.02);
             border-top: 1px solid rgba(255, 255, 255, 0.05);
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .yearly-table tr td:first-child { border-radius: 20px 0 0 20px; border-left: 1px solid rgba(255, 255, 255, 0.05); }
-        .yearly-table tr td:last-child { border-radius: 0 20px 20px 0; border-right: 1px solid rgba(255, 255, 255, 0.05); }
+        .yearly-table tr.row-category td:first-child { border-radius: 16px 0 0 16px; border-left: 1px solid rgba(255, 255, 255, 0.05); }
+        .yearly-table tr.row-category td:last-child { border-radius: 0 16px 16px 0; border-right: 1px solid rgba(255, 255, 255, 0.05); }
+        
+        /* Estilos para o Drill Down */
+        .row-detail td {
+            background: rgba(255, 255, 255, 0.005);
+            font-size: 11px;
+            padding: 8px 12px;
+            color: #a1a1aa;
+            border: none;
+        }
+        .expand-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 4px;
+            color: var(--accent);
+            font-size: 12px;
+            cursor: pointer;
+            margin-right: 8px;
+        }
     </style>
 </head>
 <body class="pb-24">
-    <!-- TELA DE AUTH (LOGIN / CADASTRO) -->
+    <!-- TELA DE AUTH -->
     <section id="auth-screen" class="min-h-screen flex items-center justify-center p-6">
         <div class="bubble-card w-full max-w-md p-10 space-y-6 animate-section text-center">
             <div class="w-20 h-20 mx-auto rounded-[2rem] bg-indigo-600 flex items-center justify-center shadow-2xl mb-6 ring-4 ring-indigo-600/20">
@@ -128,7 +151,6 @@
             <p id="auth-subtitle" class="text-zinc-500 text-sm font-medium italic">Gestão Financeira de Alto Padrão</p>
             
             <div id="auth-form" class="space-y-4 pt-4 text-left">
-                <!-- Campos Dinâmicos de Cadastro -->
                 <div id="register-fields" class="hidden space-y-4">
                     <input type="text" id="reg-name" placeholder="Nome Completo" class="w-full p-4 text-sm">
                     <input type="text" id="reg-cpf" placeholder="CPF" class="w-full p-4 text-sm">
@@ -172,7 +194,6 @@
                     </select>
                     <input type="number" id="select-year" onchange="updateDateContext()" value="2026" class="!bg-transparent !border-none w-16 text-[11px] font-bold">
                 </div>
-
                 <nav class="flex gap-4">
                     <button onclick="switchTab('monthly')" id="tab-monthly" class="tab-btn active">Lançamentos</button>
                     <button onclick="switchTab('yearly')" id="tab-yearly" class="tab-btn">Visão Anual</button>
@@ -186,13 +207,11 @@
         <main class="max-w-7xl mx-auto p-6 md:p-10">
             <!-- ABA MENSAL -->
             <section id="section-monthly" class="space-y-10 animate-section">
-                <!-- CARDS DE RESUMO - ATUALIZADO COM PATRIMÔNIO -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
                     <div class="bubble-card p-6 border-l-4 border-l-emerald-500">
                         <p class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Total Recebido</p>
                         <h2 id="display-income" class="text-2xl font-bold text-emerald-400">R$ 0,00</h2>
                     </div>
-                    <!-- NOVO CARD: PATRIMÔNIO -->
                     <div class="bubble-card p-6 border-l-4 border-l-amber-500">
                         <p class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Patrimônio</p>
                         <h2 id="display-equity" class="text-2xl font-bold text-amber-400">R$ 0,00</h2>
@@ -215,7 +234,6 @@
                     </div>
                 </div>
 
-                <!-- FORMULÁRIO DE INPUT -->
                 <div class="bubble-card p-8">
                     <div class="flex justify-between items-center mb-8">
                         <h3 id="form-title" class="text-[10px] font-black uppercase text-indigo-400 tracking-[0.2em]">Novo Registro Financeiro</h3>
@@ -309,7 +327,7 @@
         let transactions = [];
         let isRegisterMode = false;
         let editingId = null;
-        let expandedCategories = new Set();
+        let expandedCategories = new Set(); // Armazena quais categorias estão abertas
         let selectedMonth = new Date().getMonth();
         let selectedYear = new Date().getFullYear();
 
@@ -326,7 +344,6 @@
             const mainBtn = document.getElementById('auth-main-btn');
             const toggleBtn = document.getElementById('auth-toggle-btn');
             const subtitle = document.getElementById('auth-subtitle');
-
             if (isRegisterMode) {
                 regFields.classList.remove('hidden');
                 mainBtn.innerText = "Criar Minha Conta";
@@ -344,9 +361,7 @@
             const email = document.getElementById('auth-email').value;
             const pass = document.getElementById('auth-pass').value;
             if (!email || !pass) return;
-
             const users = JSON.parse(localStorage.getItem('vertice_users') || '{}');
-
             if (isRegisterMode) {
                 const name = document.getElementById('reg-name').value;
                 if (!name) return;
@@ -355,7 +370,6 @@
                     alert("Este e-mail já está cadastrado.");
                     return;
                 }
-
                 users[email] = { 
                     pass, 
                     name, 
@@ -431,7 +445,6 @@
             const inYear = parseInt(document.getElementById('input-year').value);
             
             if(!desc || isNaN(val)) return;
-
             if (editingId) {
                 const idx = transactions.findIndex(t => t.id === editingId);
                 if (idx !== -1) {
@@ -459,6 +472,20 @@
             saveData();
         }
 
+        function resetForm() {
+            editingId = null;
+            document.getElementById('desc-input').value = '';
+            document.getElementById('val-input').value = '';
+            document.getElementById('input-month').value = selectedMonth;
+            document.getElementById('input-year').value = selectedYear;
+            document.getElementById('form-title').innerText = "Novo Registro Financeiro";
+            document.getElementById('confirm-btn').innerText = "Confirmar Lançamento";
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+            document.getElementById('recurrence-input').disabled = false;
+            document.getElementById('recurrence-input').value = 'once';
+            toggleParcelField();
+        }
+
         function editItem(id) {
             const item = transactions.find(t => t.id === id);
             if (!item) return;
@@ -473,20 +500,6 @@
             document.getElementById('cancel-edit-btn').classList.remove('hidden');
             document.getElementById('recurrence-input').disabled = true;
             window.scrollTo({ top: 300, behavior: 'smooth' });
-        }
-
-        function resetForm() {
-            editingId = null;
-            document.getElementById('desc-input').value = '';
-            document.getElementById('val-input').value = '';
-            document.getElementById('input-month').value = selectedMonth;
-            document.getElementById('input-year').value = selectedYear;
-            document.getElementById('form-title').innerText = "Novo Registro Financeiro";
-            document.getElementById('confirm-btn').innerText = "Confirmar Lançamento";
-            document.getElementById('cancel-edit-btn').classList.add('hidden');
-            document.getElementById('recurrence-input').disabled = false;
-            document.getElementById('recurrence-input').value = 'once';
-            toggleParcelField();
         }
 
         function togglePaid(id) {
@@ -510,10 +523,8 @@
                 if(t.category === 'Renda') {
                     income += t.val;
                 } else if (t.category === 'Poupança' || t.category === 'Investimento') {
-                    // Soma no Patrimônio e NÃO entra no "Contas a Pagar"
                     equity += t.val;
                 } else {
-                    // Despesas normais
                     totalToPay += t.val;
                     if(t.paid) paid += t.val; else pending += t.val;
                 }
@@ -541,7 +552,6 @@
                 list.appendChild(div);
             });
 
-            // Atualiza Interface
             const balance = income - totalToPay - equity;
             document.getElementById('display-income').innerText = `R$ ${income.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             document.getElementById('display-equity').innerText = `R$ ${equity.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
@@ -551,27 +561,81 @@
             
             const balanceEl = document.getElementById('display-balance');
             balanceEl.innerText = `R$ ${balance.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            document.getElementById('card-balance').style.borderLeftColor = balance >= 0 ? '#10b981' : '#f43f5e';
-            balanceEl.className = `text-2xl font-bold ${balance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+            document.getElementById('card-balance').style.borderLeftColor = balance < 0 ? '#f43f5e' : '#10b981';
+        }
+
+        function toggleCategoryExpand(catName) {
+            if (expandedCategories.has(catName)) {
+                expandedCategories.delete(catName);
+            } else {
+                expandedCategories.add(catName);
+            }
+            renderYearly();
         }
 
         function renderYearly() {
-            document.getElementById('yearly-year-title').innerText = selectedYear;
             const body = document.getElementById('yearly-body');
             body.innerHTML = '';
+            document.getElementById('yearly-year-title').innerText = selectedYear;
+
             const categories = ["Renda", "Despesa Fixa", "Despesa Variável", "Investimento", "Poupança"];
-            
+            const yearData = transactions.filter(t => t.year === selectedYear);
+
             categories.forEach(cat => {
-                let row = `<tr class="category-row"><td class="text-[11px] font-black text-white uppercase tracking-wider">${cat}</td>`;
+                // Cálculo da Linha Mestra (Categoria)
+                let rowHtml = `<tr class="row-category">
+                    <td class="font-bold text-white flex items-center">
+                        <button onclick="toggleCategoryExpand('${cat}')" class="expand-btn">
+                            ${expandedCategories.has(cat) ? '-' : '+'}
+                        </button>
+                        ${cat}
+                    </td>`;
+                
                 let catTotal = 0;
                 for (let m = 0; m < 12; m++) {
-                    const monthVal = transactions.filter(t => t.category === cat && t.month === m && t.year === selectedYear).reduce((s, t) => s + t.val, 0);
-                    row += `<td class="text-[10px] ${monthVal > 0 ? 'text-zinc-300' : 'text-zinc-700'}">R$ ${monthVal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>`;
-                    catTotal += monthVal;
+                    const val = yearData.filter(t => t.category === cat && t.month === m).reduce((a, b) => a + b.val, 0);
+                    catTotal += val;
+                    rowHtml += `<td class="text-[11px] ${val > 0 ? (cat === 'Renda' ? 'text-emerald-400' : 'text-zinc-300') : 'text-zinc-700'}">
+                        ${val > 0 ? val.toLocaleString('pt-BR', {minimumFractionDigits: 0}) : '-'}
+                    </td>`;
                 }
-                row += `<td class="text-[11px] font-bold text-white bg-white/5">R$ ${catTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td></tr>`;
-                body.innerHTML += row;
+                rowHtml += `<td class="font-bold text-indigo-400">${catTotal.toLocaleString('pt-BR', {minimumFractionDigits: 0})}</td></tr>`;
+                
+                body.innerHTML += rowHtml;
+
+                // Drill Down: Detalhes por Descrição
+                if (expandedCategories.has(cat)) {
+                    const descriptions = [...new Set(yearData.filter(t => t.category === cat).map(t => t.desc))];
+                    
+                    descriptions.forEach(d => {
+                        let detailHtml = `<tr class="row-detail">
+                            <td class="pl-10 italic opacity-70">${d}</td>`;
+                        
+                        let dTotal = 0;
+                        for (let m = 0; m < 12; m++) {
+                            const val = yearData.filter(t => t.category === cat && t.desc === d && t.month === m).reduce((a, b) => a + b.val, 0);
+                            dTotal += val;
+                            detailHtml += `<td class="opacity-60">${val > 0 ? val.toLocaleString('pt-BR', {minimumFractionDigits: 0}) : '-'}</td>`;
+                        }
+                        detailHtml += `<td class="font-medium opacity-80">${dTotal.toLocaleString('pt-BR', {minimumFractionDigits: 0})}</td></tr>`;
+                        body.innerHTML += detailHtml;
+                    });
+                }
             });
+
+            // Linha de Saldo Líquido Final
+            let balanceHtml = `<tr class="row-category mt-4">
+                <td class="font-black text-indigo-400 uppercase tracking-widest text-[10px]">Saldo Mensal</td>`;
+            let totalYearBalance = 0;
+            for (let m = 0; m < 12; m++) {
+                const inc = yearData.filter(t => t.category === 'Renda' && t.month === m).reduce((a, b) => a + b.val, 0);
+                const out = yearData.filter(t => t.category !== 'Renda' && t.month === m).reduce((a, b) => a + b.val, 0);
+                const bal = inc - out;
+                totalYearBalance += bal;
+                balanceHtml += `<td class="font-bold ${bal >= 0 ? 'text-emerald-500' : 'text-rose-500'}">${bal !== 0 ? bal.toLocaleString('pt-BR', {minimumFractionDigits: 0}) : '-'}</td>`;
+            }
+            balanceHtml += `<td class="font-black text-white bg-indigo-600/20">${totalYearBalance.toLocaleString('pt-BR', {minimumFractionDigits: 0})}</td></tr>`;
+            body.innerHTML += balanceHtml;
         }
     </script>
 </body>
